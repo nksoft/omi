@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lankan Omi Card Game</title>
+    <!-- Tailwind CSS for modern adaptive layouts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for main dashboard icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b131e;
+        }
+        /* Custom card styling with shadow effects */
+        .card-shadow {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), 0 6px 6px rgba(0,0,0,0.23);
+        }
+        .card-inner-glow {
+            box-shadow: inset 0 0 12px rgba(255,255,255,0.15);
+        }
+        /* Custom scrollbar for game log */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.4);
+        }
+        /* Hand Flying Animations */
+        .card-inner-element {
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen select-none overflow-x-hidden">
+
+    <!-- Header Panel -->
+    <header class="bg-slate-900/90 border-b border-slate-800 py-3 px-4 shadow-md sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-red-500 text-2xl animate-pulse"><i class="fa-solid fa-heart"></i></span>
+                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
+                    OMI CHAMPIONSHIP
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="showInstructions()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-lg text-sm border border-slate-700 transition duration-150">
+                    <i class="fa-solid fa-circle-question mr-2"></i>Rules
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Table & Control Dashboard Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left Side Control panel (Score, Hands Won Counter, Logs) -->
+        <section class="order-2 lg:order-1 lg:col-span-1 flex flex-col space-y-4">
+            <!-- Tournament Tokens Panel -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-4 rounded-xl border border-slate-800 shadow-xl">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                    <span>Tournament Tokens</span>
+                    <span class="text-amber-400 font-semibold">First to 10 Wins</span>
+                </h2>
+                
+                <!-- Token Indicators -->
+                <div class="space-y-4">
+                    <!-- Our Team Tokens -->
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1">
+                            <span class="text-emerald-400 flex items-center">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span>You & Partner
+                            </span>
+                            <span class="text-slate-300 font-bold" id="score-us-text">0 / 10 Tokens</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 p-2 bg-slate-950/60 rounded-lg min-h-[38px] border border-slate-800/80" id="tokens-us">
+                            <!-- Populated dynamically with Red tokens (standard omi) -->
+                        </div>
+                    </div>
+
+                    <!-- Opponents Tokens -->
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1">
+                            <span class="text-rose-400 flex items-center">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2"></span>Opponents
+                            </span>
+                            <span class="text-slate-300 font-bold" id="score-them-text">0 / 10 Tokens</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 p-2 bg-slate-950/60 rounded-lg min-h-[38px] border border-slate-800/80" id="tokens-them">
+                            <!-- Populated dynamically with Black tokens (standard omi) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Matches Log Feed -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-4 rounded-xl border border-slate-800 shadow-xl flex-grow flex flex-col h-[300px] lg:h-auto">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center">
+                    <i class="fa-solid fa-list-check mr-2 text-indigo-400"></i>Live Match Feed
+                </h3>
+                <div id="game-log" class="flex-grow bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-xs font-mono overflow-y-auto space-y-2 custom-scrollbar max-h-[250px] lg:max-h-[420px]">
+                    <!-- Logs populated via js -->
+                </div>
+                <button onclick="clearLogs()" class="mt-2 text-slate-500 hover:text-slate-300 text-[10px] font-semibold tracking-wider uppercase text-right block ml-auto transition">
+                    Clear Logs
+                </button>
+            </div>
+        </section>
+
+        <!-- Right Side Main Omi Velvet Playing Arena -->
+        <section class="order-1 lg:order-2 lg:col-span-3 flex flex-col justify-between space-y-4">
+            
+            <!-- Game Board Wrapper -->
+            <div class="relative bg-gradient-to-b from-emerald-850 to-emerald-950 border border-emerald-800/80 rounded-2xl shadow-2xl p-4 flex-grow flex flex-col justify-between items-center min-h-[460px] sm:min-h-[500px] md:min-h-[600px] overflow-hidden">
+                <!-- Inner Table Texture Overlay -->
+                <div class="absolute inset-0 bg-radial-gradient from-transparent to-black/30 pointer-events-none"></div>
+
+                <!-- Dealer & Trump status Banner top right / top left -->
+                <div class="absolute top-2 left-2 sm:top-3 sm:left-4 bg-slate-900/95 border border-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-lg flex items-center space-x-1 sm:space-x-2 text-[10px] sm:text-xs font-semibold z-10">
+                    <span class="text-slate-400">Trump:</span>
+                    <span id="trump-indicator" class="text-amber-400 font-bold uppercase">Undecided</span>
+                </div>
+                <div class="absolute top-2 right-2 sm:top-3 sm:right-4 bg-slate-900/95 border border-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-lg flex items-center space-x-1 sm:space-x-2 text-[10px] sm:text-xs font-semibold z-10">
+                    <span class="text-slate-400">Trump Caller:</span>
+                    <span id="trump-caller-indicator" class="text-amber-400 font-bold">Undecided</span>
+                </div>
+
+                <!-- Hands Won & Hands Lost Absolute HUD Overlays (Bottom Left and Bottom Right) -->
+                <div class="absolute bottom-[100px] sm:bottom-[130px] left-2 sm:left-4 bg-slate-900/95 border border-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-lg flex items-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs font-semibold z-10">
+                    <span class="text-slate-400">Hands Won:</span>
+                    <span id="hands-won-counter" class="text-emerald-400 font-extrabold text-xs sm:text-sm">0</span>
+                </div>
+                <div class="absolute bottom-[100px] sm:bottom-[130px] right-2 sm:right-4 bg-slate-900/95 border border-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg shadow-lg flex items-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs font-semibold z-10">
+                    <span class="text-slate-400">Hands Lost:</span>
+                    <span id="hands-lost-counter" class="text-rose-500 font-extrabold text-xs sm:text-sm">0</span>
+                </div>
+
+                <!-- North (Partner Bot) -->
+                <div class="text-center z-10 w-full max-w-[200px] mt-10 sm:mt-2 relative">
+                    <div class="inline-flex items-center space-x-1 sm:space-x-2 bg-slate-900/90 border border-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-400" id="turn-dot-2"></span>
+                        <span class="font-bold text-[10px] sm:text-xs">North (Partner)</span>
+                        <span class="bg-indigo-950 text-indigo-300 text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border border-indigo-800/50">BOT</span>
+                    </div>
+                    <div id="hand-count-2" class="text-[10px] sm:text-xs text-emerald-400 font-semibold mt-0.5 sm:mt-1">8 Cards</div>
+                    <!-- Single Trump Declaration Bubble (Silent other than this) -->
+                    <div id="speech-bubble-2" class="hidden absolute top-12 left-1/2 transform -translate-x-1/2 bg-amber-400 text-slate-950 font-bold text-[10px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow-xl border border-white/20 whitespace-nowrap z-30"></div>
+                </div>
+
+                <!-- Middle Arena Area: West Bot, Center Slots, East Bot -->
+                <div class="w-full flex justify-between items-center my-2 sm:my-4">
+                    <!-- West (Opponent Bot 1) -->
+                    <div class="text-center z-10 w-16 sm:w-24 md:w-28 relative">
+                        <div class="inline-flex flex-col items-center bg-slate-900/90 border border-slate-800 px-1.5 py-1 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg">
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-400 mb-1" id="turn-dot-3"></span>
+                            <span class="font-bold text-[10px] sm:text-xs">West</span>
+                            <span class="bg-rose-950 text-rose-300 text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border border-rose-800/50 mt-0.5 sm:mt-1">BOT</span>
+                        </div>
+                        <div id="hand-count-3" class="text-[10px] sm:text-xs text-emerald-400 font-semibold mt-1">8 Cards</div>
+                        <!-- Single Trump Declaration Bubble (Silent other than this) -->
+                        <div id="speech-bubble-3" class="hidden absolute left-14 sm:left-24 top-1/2 transform -translate-y-1/2 bg-amber-400 text-slate-950 font-bold text-[10px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow-xl border border-white/20 whitespace-nowrap z-30"></div>
+                    </div>
+
+                    <!-- Center Playing Arena Floor (The Hand Arena) -->
+                    <div class="relative w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] md:w-[240px] md:h-[240px] bg-emerald-900/40 rounded-full border-4 border-dashed border-emerald-800/60 flex items-center justify-center">
+                        
+                        <!-- Top Card Slot (North) -->
+                        <div class="absolute top-1 sm:top-2 left-1/2 transform -translate-x-1/2 w-10 h-14 sm:w-14 sm:h-20 md:w-16 md:h-24 bg-emerald-950/40 rounded-lg border border-emerald-800 flex items-center justify-center text-[10px] sm:text-xs text-slate-500/80 font-mono font-semibold" id="slot-2"></div>
+                        
+                        <!-- Bottom Card Slot (South - You) -->
+                        <div class="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-14 sm:w-14 sm:h-20 md:w-16 md:h-24 bg-emerald-950/40 rounded-lg border border-emerald-800 flex items-center justify-center text-[10px] sm:text-xs text-slate-500/80 font-mono font-semibold" id="slot-0"></div>
+                        
+                        <!-- Left Card Slot (West) -->
+                        <div class="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 w-10 h-14 sm:w-14 sm:h-20 md:w-16 md:h-24 bg-emerald-950/40 rounded-lg border border-emerald-800 flex items-center justify-center text-[10px] sm:text-xs text-slate-500/80 font-mono font-semibold" id="slot-3"></div>
+                        
+                        <!-- Right Card Slot (East) -->
+                        <div class="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 w-10 h-14 sm:w-14 sm:h-20 md:w-16 md:h-24 bg-emerald-950/40 rounded-lg border border-emerald-800 flex items-center justify-center text-[10px] sm:text-xs text-slate-500/80 font-mono font-semibold" id="slot-1"></div>
+                    </div>
+
+                    <!-- East (Opponent Bot 2) -->
+                    <div class="text-center z-10 w-16 sm:w-24 md:w-28 relative">
+                        <div class="inline-flex flex-col items-center bg-slate-900/90 border border-slate-800 px-1.5 py-1 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg">
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-400 mb-1" id="turn-dot-1"></span>
+                            <span class="font-bold text-[10px] sm:text-xs">East</span>
+                            <span class="bg-rose-950 text-rose-300 text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full border border-rose-800/50 mt-0.5 sm:mt-1">BOT</span>
+                        </div>
+                        <div id="hand-count-1" class="text-[10px] sm:text-xs text-emerald-400 font-semibold mt-1">8 Cards</div>
+                        <!-- Single Trump Declaration Bubble (Silent other than this) -->
+                        <div id="speech-bubble-1" class="hidden absolute right-14 sm:right-24 top-1/2 transform -translate-y-1/2 bg-amber-400 text-slate-950 font-bold text-[10px] sm:text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl shadow-xl border border-white/20 whitespace-nowrap z-30"></div>
+                    </div>
+                </div>
+
+                <!-- South (User / Player Hand) -->
+                <div class="w-full z-10 flex flex-col items-center">
+                    <div class="inline-flex items-center space-x-1 sm:space-x-2 bg-slate-900/95 border border-slate-800 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-lg mb-2 sm:mb-3">
+                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse" id="turn-dot-0"></span>
+                        <span class="font-extrabold text-[10px] sm:text-xs">South (You)</span>
+                        <span id="player-turn-hint" class="text-emerald-400 text-[9px] sm:text-[11px] font-semibold">Preparing game...</span>
+                    </div>
+
+                    <!-- Cards Row Container -->
+                    <div id="player-hand-container" class="flex gap-1 sm:gap-2 justify-center items-center min-h-[80px] sm:min-h-[110px] max-w-full px-1.5 py-1.5 sm:px-2 sm:py-2 rounded-xl bg-slate-950/20 backdrop-blur-sm border border-white/5 shadow-inner">
+                        <!-- Cards are injected dynamically here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Interaction Bar -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 p-4 rounded-xl flex flex-wrap gap-3 items-center justify-between shadow-xl">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Status:</span>
+                    <span id="game-status-text" class="text-xs text-slate-300 font-semibold">Click Deal to start a fresh match!</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="deal-btn" onclick="dealInitialHand()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm px-5 py-2.5 rounded-lg border-b-4 border-amber-700 transition active:border-b-0 flex items-center shadow-lg">
+                        <i class="fa-solid fa-play mr-2"></i>Deal Cards
+                    </button>
+                    <button id="next-round-btn" onclick="startNextRound()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm px-5 py-2.5 rounded-lg border-b-4 border-indigo-800 transition active:border-b-0 flex items-center shadow-lg">
+                        <i class="fa-solid fa-forward mr-2"></i>Next Game
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TRUMP SELECTOR FULL SCREEN OVERLAY (Modal) -->
+    <div id="trump-modal" class="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-3 sm:p-4 hidden backdrop-blur-md">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl relative">
+            
+            <h3 class="text-lg sm:text-xl font-black text-amber-400 uppercase tracking-tight text-center mb-1">
+                Select Trump Suit
+            </h3>
+            <p class="text-[9px] sm:text-xs text-slate-400 text-center mb-4 uppercase tracking-wider">
+                Choose the trump suit based on your first 4 cards shown below
+            </p>
+
+            <!-- Embedded hand preview during trump selection -->
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 mb-4 sm:mb-6">
+                <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-2 text-center">
+                    Your Dealt Cards
+                </p>
+                <div id="trump-hand-preview" class="flex gap-1.5 justify-center items-center min-h-[70px] sm:min-h-[90px]">
+                    <!-- Preview cards loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Suit Selection Buttons -->
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                <!-- Spades -->
+                <button onclick="userSelectTrump('spades')" class="p-2 sm:p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl flex flex-col items-center justify-center space-y-0.5 transition shadow-md hover:border-indigo-500/50 group">
+                    <span class="text-indigo-400 group-hover:scale-110 transition duration-150 text-3xl sm:text-5xl font-normal leading-none">♠</span>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">Spades</span>
+                </button>
+                <!-- Hearts -->
+                <button onclick="userSelectTrump('hearts')" class="p-2 sm:p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl flex flex-col items-center justify-center space-y-0.5 transition shadow-md hover:border-rose-500/50 group">
+                    <span class="text-rose-500 group-hover:scale-110 transition duration-150 text-3xl sm:text-5xl font-normal leading-none">♥</span>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">Hearts</span>
+                </button>
+                <!-- Clubs -->
+                <button onclick="userSelectTrump('clubs')" class="p-2 sm:p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl flex flex-col items-center justify-center space-y-0.5 transition shadow-md hover:border-emerald-500/50 group">
+                    <span class="text-emerald-400 group-hover:scale-110 transition duration-150 text-3xl sm:text-5xl font-normal leading-none">♣</span>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">Clubs</span>
+                </button>
+                <!-- Diamonds -->
+                <button onclick="userSelectTrump('diamonds')" class="p-2 sm:p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl flex flex-col items-center justify-center space-y-0.5 transition shadow-md hover:border-amber-500/50 group">
+                    <span class="text-amber-500 group-hover:scale-110 transition duration-150 text-3xl sm:text-5xl font-normal leading-none">♦</span>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">Diamonds</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RULES MODAL OVERLAY -->
+    <div id="rules-modal" class="fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative">
+            <button onclick="hideInstructions()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <h3 class="text-lg font-black text-amber-400 uppercase mb-4 flex items-center">
+                <i class="fa-solid fa-circle-info mr-2"></i>Official Omi Tournament Rules
+            </h3>
+
+            <div class="space-y-3 text-xs text-slate-300 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <b class="text-slate-100">1. Setup & Team Matrix</b>
+                    <p class="mt-1 text-slate-400">Omi is a 4-player hand-taking game where players sitting opposite each other form a team. South (You) and North (Bot) are partnered against West and East.</p>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <b class="text-slate-100">2. The Deck & Precedence</b>
+                    <p class="mt-1 text-slate-400">The game is played with a 32-card deck (Aces, Kings, Queens, Jacks, 10s, 9s, 8s, and 7s only). Value precedence is strictly: <b class="text-amber-400">A &gt; K &gt; Q &gt; J &gt; 10 &gt; 9 &gt; 8 &gt; 7</b>.</p>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <b class="text-slate-100">3. Dealing & Trump Selection (Thurumpu)</b>
+                    <p class="mt-1 text-slate-400">The dealer deals 4 cards counter-clockwise. The player designated as the trump selector chooses the Trump suit based on these 4 initial cards. After selection, the remaining 4 cards are dealt.</p>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <b class="text-slate-100">4. Hand Gameplay</b>
+                    <p class="mt-1 text-slate-400">Counter-clockwise play. Players must follow the lead suit. If they have no cards of the lead suit, they can play any card, including a Trump. The highest card of the lead suit wins, unless a Trump is played, in which case the highest Trump card wins the hand.</p>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <b class="text-slate-100">5. Tournament Token Scoring</b>
+                    <p class="mt-1 text-slate-400">There are 8 total hands in a game. First team to win 5 or more hands wins the round and earns tournament tokens:</p>
+                    <ul class="list-disc pl-4 mt-1.5 space-y-1 text-slate-400">
+                        <li>5, 6, or 7 hands won by the trump selecting team: <b class="text-slate-200">+1 token</b>.</li>
+                        <li>5, 6, or 7 hands won by the defending team: <b class="text-slate-200">+2 tokens</b>.</li>
+                        <li>All 8 hands won (Kapothi) by any team: <b class="text-slate-200">+3 tokens</b>.</li>
+                        <li>A tie (4-4): 1st tie rolls over a token to the next round. If two consecutive ties happen, the tie state cancels and resets.</li>
+                    </ul>
+                </div>
+            </div>
+            <button onclick="hideInstructions()" class="mt-5 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-sm transition border border-slate-700">
+                Close Rules
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION UTILITY -->
+    <div id="toast-notif" class="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-slate-100 px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center space-x-3 max-w-sm hidden transition duration-300">
+        <span class="text-amber-400 text-lg"><i class="fa-solid fa-bell"></i></span>
+        <span id="toast-text" class="text-xs font-semibold">Message here</span>
+    </div>
+
+    <!-- AUDIO SYNTHESIZER AND ENGINE LOGIC -->
+    <script>
+        // Init Web Audio API Context securely
+        let audioCtx;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+        } catch (e) {
+            console.warn("Web Audio API not supported in this browser.");
+        }
+
+        // Game Constants
+        const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+        const VALUES = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const SUIT_SYMBOL = {
+            spades: '♠',
+            hearts: '♥',
+            clubs: '♣',
+            diamonds: '♦'
+        };
+
+        // Game Engine Variables
+        let gameState = {
+            phase: 'welcome', // welcome, trump_selection, dealing_phase_2, active_round, round_finished, tournament_finished
+            deck: [],
+            hands: [[], [], [], []], // 0: South (User), 1: East, 2: North (Partner), 3: West
+            playedCards: [null, null, null, null], // current hand arena
+            dealer: 0, // South initially
+            trumpSelector: 1, // Next counter-clockwise
+            trumpSuit: null,
+            leadSuit: null,
+            currentPlayer: 1,
+            isLocked: false, // Prevents card interactions during evaluation and fly animations
+            tricksUs: 0,
+            tricksThem: 0,
+            scores: [0, 0], // Tournament tokens
+            carryOverTokens: 0, // 4-4 tie token carryover
+            consecutiveTies: 0, // monitors consecutive tie counts
+            roundTricksHistory: []
+        };
+
+        const slowDelay = 1500; // Hardcoded slow delay speed in ms
+
+        // Audio synthesizer generator
+        function playSound(type) {
+            if (!audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'deal') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'play') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'trick_win') {
+                    // Harmonious winning pitch sequence
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'trick_lose') {
+                    // Minor falling sawtooth synthesizer for losing a hand
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(293.66, now); // D4
+                    osc.frequency.exponentialRampToValueAtTime(146.83, now + 0.35); // D3 slide
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'round_win') {
+                    // Bright ascending major chord sequence for winning round tokens (or ties)
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.15); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.3); // G5
+                    osc.frequency.setValueAtTime(1046.50, now + 0.45); // C6
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                } else if (type === 'round_lose') {
+                    // Somber descending flat minor sequence for losing round tokens
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(392.00, now); // G4
+                    osc.frequency.setValueAtTime(349.23, now + 0.15); // F4
+                    osc.frequency.setValueAtTime(311.13, now + 0.3); // Eb4 (Minor third feel)
+                    osc.frequency.setValueAtTime(246.94, now + 0.45); // B3
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                } else if (type === 'trump_select') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(329.63, now); // E4
+                    osc.frequency.setValueAtTime(392.00, now + 0.12); // G4
+                    osc.frequency.setValueAtTime(493.88, now + 0.24); // B4
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (err) {
+                console.error("Audio synthesizer failed", err);
+            }
+        }
+
+        // Setup Omi Playing Deck
+        function generateDeck() {
+            let tempDeck = [];
+            for (let suit of SUITS) {
+                for (let val of VALUES) {
+                    tempDeck.push({ suit, value: val });
+                }
+            }
+            return tempDeck;
+        }
+
+        // Fisher-Yates shuffle
+        function shuffleDeck(deckToShuffle) {
+            for (let i = deckToShuffle.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deckToShuffle[i], deckToShuffle[j]] = [deckToShuffle[j], deckToShuffle[i]];
+            }
+            return deckToShuffle;
+        }
+
+        // Dynamic alternating-color sort utility
+        function sortHandAlternating(hand) {
+            if (hand.length <= 1) return hand;
+            const valueOrder = { '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+            
+            // Sort helper inside each suit (High to Low)
+            const sortSuit = (cards) => {
+                return [...cards].sort((a, b) => valueOrder[b.value] - valueOrder[a.value]);
+            };
+
+            // Group by suit
+            const S = sortSuit(hand.filter(c => c.suit === 'spades'));
+            const H = sortSuit(hand.filter(c => c.suit === 'hearts'));
+            const C = sortSuit(hand.filter(c => c.suit === 'clubs'));
+            const D = sortSuit(hand.filter(c => c.suit === 'diamonds'));
+
+            const blacks = [];
+            if (S.length > 0) blacks.push(S);
+            if (C.length > 0) blacks.push(C);
+
+            const reds = [];
+            if (H.length > 0) reds.push(H);
+            if (D.length > 0) reds.push(D);
+
+            const resultGroups = [];
+            // Start with whoever has more suit groups to maximize alternating possibilities
+            let turn = (blacks.length >= reds.length) ? 'black' : 'red';
+            
+            while (blacks.length > 0 || reds.length > 0) {
+                if (turn === 'black') {
+                    if (blacks.length > 0) {
+                        resultGroups.push(blacks.shift());
+                    } else if (reds.length > 0) {
+                        resultGroups.push(reds.shift());
+                    }
+                    turn = 'red';
+                } else {
+                    if (reds.length > 0) {
+                        resultGroups.push(reds.shift());
+                    } else if (blacks.length > 0) {
+                        resultGroups.push(blacks.shift());
+                    }
+                    turn = 'black';
+                }
+            }
+
+            // Flatten and return the perfectly alternating card array
+            return resultGroups.flat();
+        }
+
+        // Clear live log panel
+        function clearLogs() {
+            document.getElementById('game-log').innerHTML = '';
+            addLog("Match feed logs cleared.");
+        }
+
+        // Add visual logs to terminal feed
+        function addLog(message) {
+            const feed = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.innerHTML = `&gt; ${message}`;
+            feed.appendChild(entry);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        // Display generic system toasts
+        function showToast(message) {
+            const toast = document.getElementById('toast-notif');
+            document.getElementById('toast-text').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        // Initialize Tournament Game State
+        function initGameRound() {
+            gameState.deck = shuffleDeck(generateDeck());
+            gameState.hands = [[], [], [], []];
+            gameState.playedCards = [null, null, null, null];
+            gameState.tricksUs = 0;
+            gameState.tricksThem = 0;
+            gameState.leadSuit = null;
+            gameState.trumpSuit = null;
+            gameState.isLocked = false;
+
+            updateRoundTricksCounter();
+            updateStatus("Dealing initial hand...");
+            
+            // Clear current table card slots
+            resetTrickVisuals();
+            document.getElementById('trump-indicator').innerText = "Undecided";
+            document.getElementById('trump-caller-indicator').innerText = "Undecided";
+
+            // Determine Trump Selector (Right of current dealer: counter-clockwise)
+            // 0: South, 1: East, 2: North, 3: West
+            gameState.trumpSelector = (gameState.dealer + 1) % 4;
+        }
+
+        // Deal Phase 1: Deal 4 Cards to everyone
+        function dealInitialHand() {
+            if (gameState.phase !== 'welcome' && gameState.phase !== 'round_finished') {
+                showToast("Finish current match before dealing.");
+                return;
+            }
+
+            initGameRound();
+            playSound('deal');
+
+            // Splicing the first 4 cards per player
+            for (let i = 0; i < 4; i++) {
+                for (let p = 0; p < 4; p++) {
+                    gameState.hands[p].push(gameState.deck.pop());
+                }
+            }
+
+            // Sort player hand to align alternating suit colors immediately
+            gameState.hands[0] = sortHandAlternating(gameState.hands[0]);
+
+            // Hide the standard deal button during game progression
+            document.getElementById('deal-btn').classList.add('hidden');
+
+            renderUserHand();
+            updateBotHandCounts();
+
+            // Shift game phases
+            gameState.phase = 'trump_selection';
+            
+            const selectorName = getPlayerName(gameState.trumpSelector);
+            const isUsCaller = (gameState.trumpSelector === 0 || gameState.trumpSelector === 2);
+            document.getElementById('trump-caller-indicator').innerText = isUsCaller ? "Our Team" : "Opponents";
+
+            addLog(`Dealer ${getPlayerName(gameState.dealer)} deals initial 4 cards.`);
+            addLog(`Trump Selector: <b class="text-amber-400">${selectorName}</b>`);
+
+            // Execute selection flow
+            setTimeout(() => {
+                triggerTrumpSelection();
+            }, 800);
+        }
+
+        // Handle card dealing phase 2: remaining 4 cards
+        function dealFinalRemainingCards() {
+            playSound('deal');
+            addLog("Dealing final 4 cards to players.");
+
+            for (let i = 0; i < 4; i++) {
+                for (let p = 0; p < 4; p++) {
+                    gameState.hands[p].push(gameState.deck.pop());
+                }
+            }
+
+            // Arrange full hand in alternating suit colors
+            gameState.hands[0] = sortHandAlternating(gameState.hands[0]);
+
+            renderUserHand();
+            updateBotHandCounts();
+
+            gameState.phase = 'active_round';
+            
+            // Player to the right of dealer (trump selector) leads first hand
+            gameState.currentPlayer = gameState.trumpSelector;
+            addLog(`Lead Player of 1st turn: <b>${getPlayerName(gameState.currentPlayer)}</b>`);
+            
+            triggerPlayerTurn();
+        }
+
+        // Render sorted cards in the user dashboard
+        function renderUserHand() {
+            const container = document.getElementById('player-hand-container');
+            container.innerHTML = '';
+
+            gameState.hands[0].forEach((card, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "relative bg-slate-50 border border-slate-300 sm:border-2 rounded-lg py-1.5 px-1 sm:py-3 sm:px-2 flex flex-col justify-between items-center w-10 h-15 sm:w-14 sm:h-22 md:w-16 md:h-24 cursor-pointer hover:-translate-y-3 transition duration-150 shadow-md card-shadow select-none";
+                
+                // Color separation: Spades/Clubs = Dark Slate, Hearts/Diamonds = Rich Red
+                const isRed = (card.suit === 'hearts' || card.suit === 'diamonds');
+                const suitColorClass = isRed ? "text-rose-600" : "text-slate-900";
+
+                cardEl.innerHTML = `
+                    <div class="text-[9px] sm:text-xs font-black self-start ${suitColorClass}">${card.value}</div>
+                    <div class="text-lg sm:text-xl md:text-2xl ${suitColorClass}">${SUIT_SYMBOL[card.suit]}</div>
+                    <div class="text-[9px] sm:text-xs font-black self-end transform rotate-180 ${suitColorClass}">${card.value}</div>
+                `;
+
+                // Card Click Callback
+                cardEl.onclick = () => {
+                    playUserCard(card, idx);
+                };
+
+                container.appendChild(cardEl);
+            });
+        }
+
+        // Render card previews directly inside the trump selector overlay
+        function renderTrumpHandPreview() {
+            const container = document.getElementById('trump-hand-preview');
+            container.innerHTML = '';
+
+            gameState.hands[0].forEach((card) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "relative bg-slate-50 border border-slate-300 rounded-lg py-1 px-1 flex flex-col justify-between items-center w-9 h-14 sm:w-12 sm:h-18 text-slate-900 card-shadow select-none";
+                
+                const isRed = (card.suit === 'hearts' || card.suit === 'diamonds');
+                const suitColorClass = isRed ? "text-rose-600" : "text-slate-900";
+
+                cardEl.innerHTML = `
+                    <div class="text-[9px] sm:text-[10px] font-black self-start ${suitColorClass}">${card.value}</div>
+                    <div class="text-base sm:text-lg ${suitColorClass}">${SUIT_SYMBOL[card.suit]}</div>
+                    <div class="text-[9px] sm:text-[10px] font-black self-end transform rotate-180 ${suitColorClass}">${card.value}</div>
+                `;
+
+                container.appendChild(cardEl);
+            });
+        }
+
+        // Update card metrics tracker on visual HUD
+        function updateBotHandCounts() {
+            document.getElementById('hand-count-1').innerText = `${gameState.hands[1].length} Cards`;
+            document.getElementById('hand-count-2').innerText = `${gameState.hands[2].length} Cards`;
+            document.getElementById('hand-count-3').innerText = `${gameState.hands[3].length} Cards`;
+        }
+
+        // Trigger Trump selector modal or bot choices
+        function triggerTrumpSelection() {
+            if (gameState.trumpSelector === 0) {
+                // User selects trump
+                updateStatus("Select Trump suit from selection modal.");
+                renderTrumpHandPreview();
+                document.getElementById('trump-modal').classList.remove('hidden');
+            } else {
+                // Bot selects Trump
+                updateStatus(`${getPlayerName(gameState.trumpSelector)} is selecting Trump suit...`);
+                setTimeout(() => {
+                    executeBotTrumpSelection();
+                }, slowDelay);
+            }
+        }
+
+        // User selected trump suit
+        function userSelectTrump(suit) {
+            gameState.trumpSuit = suit;
+            document.getElementById('trump-modal').classList.add('hidden');
+            playSound('trump_select');
+
+            // Apply selected trump suit text
+            const trumpMarkup = getSuitSymbolColorText(suit);
+            document.getElementById('trump-indicator').innerHTML = trumpMarkup;
+            addLog(`You selected Trump: ${trumpMarkup}`);
+
+            // Show a temporary announcement bubble, obeying the 'no talking' general rule during play
+            announceTrumpText(0, `Trump is ${suit.toUpperCase()}!`);
+
+            setTimeout(() => {
+                dealFinalRemainingCards();
+            }, slowDelay);
+        }
+
+        // AI Logic: Smart Bot selecting trump
+        function executeBotTrumpSelection() {
+            const botHand = gameState.hands[gameState.trumpSelector];
+            
+            // Map suit densities in bots initial 4 cards
+            const suitWeights = { spades: 0, hearts: 0, clubs: 0, diamonds: 0 };
+            const valueMap = { '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+
+            botHand.forEach(card => {
+                suitWeights[card.suit] += valueMap[card.value];
+            });
+
+            // Find heaviest suit
+            let bestSuit = 'spades';
+            let bestWeight = -1;
+            for (let suit in suitWeights) {
+                if (suitWeights[suit] > bestWeight) {
+                    bestWeight = suitWeights[suit];
+                    bestSuit = suit;
+                }
+            }
+
+            gameState.trumpSuit = bestSuit;
+            playSound('trump_select');
+
+            const trumpMarkup = getSuitSymbolColorText(bestSuit);
+            document.getElementById('trump-indicator').innerHTML = trumpMarkup;
+            
+            const botName = getPlayerName(gameState.trumpSelector);
+            addLog(`${botName} sets Trump: ${trumpMarkup}`);
+
+            // Speech bubble only for Trump Announcement, none during hand play
+            announceTrumpText(gameState.trumpSelector, `Trump is ${bestSuit.toUpperCase()}!`);
+
+            setTimeout(() => {
+                dealFinalRemainingCards();
+            }, slowDelay);
+        }
+
+        // Temporary Trump Announcement speech bubble utility
+        function announceTrumpText(playerIndex, text) {
+            if (playerIndex === 0) {
+                // Flash toast for User
+                showToast(text);
+                return;
+            }
+            const bubble = document.getElementById(`speech-bubble-${playerIndex}`);
+            if (bubble) {
+                bubble.innerText = text;
+                bubble.classList.remove('hidden');
+                setTimeout(() => {
+                    bubble.classList.add('hidden');
+                }, 2000);
+            }
+        }
+
+        // Game Playing Logic / Rules Engine
+        function triggerPlayerTurn() {
+            gameState.isLocked = false; // Safely unlock interactions now that the new turn is active
+            highlightActiveTurnDot();
+
+            if (gameState.currentPlayer === 0) {
+                updateStatus("Your Turn! Choose a card to play.");
+                document.getElementById('player-turn-hint').innerText = "YOUR TURN";
+            } else {
+                const name = getPlayerName(gameState.currentPlayer);
+                updateStatus(`${name}'s Turn. Processing computer strategy...`);
+                document.getElementById('player-turn-hint').innerText = `${name.toUpperCase()} PLAYING`;
+                
+                setTimeout(() => {
+                    executeBotTurn();
+                }, slowDelay);
+            }
+        }
+
+        // Handle Active Turn Indicators on Table
+        function highlightActiveTurnDot() {
+            for (let p = 0; p < 4; p++) {
+                const dot = document.getElementById(`turn-dot-${p}`);
+                if (dot) {
+                    if (gameState.currentPlayer === p) {
+                        dot.className = "w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse border border-white/45";
+                    } else {
+                        dot.className = "w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-slate-600";
+                    }
+                }
+            }
+        }
+
+        // User card playing callback
+        function playUserCard(card, indexInHand) {
+            if (gameState.phase !== 'active_round') return;
+            if (gameState.isLocked) {
+                showToast("Wait, hand is being resolved!");
+                return;
+            }
+            if (gameState.currentPlayer !== 0) {
+                showToast("Wait for your turn!");
+                return;
+            }
+
+            // Enforce Suit following rule
+            if (gameState.leadSuit !== null) {
+                const hasLeadSuit = gameState.hands[0].some(c => c.suit === gameState.leadSuit);
+                if (hasLeadSuit && card.suit !== gameState.leadSuit) {
+                    showToast(`You must follow suit! Play a ${gameState.leadSuit.toUpperCase()}`);
+                    return;
+                }
+            }
+
+            // 1. Splicing card from original hand immediately
+            gameState.hands[0].splice(indexInHand, 1);
+
+            // 2. Re-sorting player hand after the card has been successfully spliced
+            gameState.hands[0] = sortHandAlternating(gameState.hands[0]);
+            
+            // 3. Re-render hand UI right away to remove card instantly from player's view
+            renderUserHand();
+
+            // Execute the card-play block safely
+            executeCardPlay(0, card);
+        }
+
+        // Visual handling of putting a card in the table center
+        function executeCardPlay(playerIndex, card) {
+            playSound('play');
+            
+            gameState.playedCards[playerIndex] = card;
+
+            // Establish lead suit if 1st card in hand
+            if (gameState.leadSuit === null) {
+                gameState.leadSuit = card.suit;
+            }
+
+            // Append played card representation to table centers (with CSS transition class)
+            const slot = document.getElementById(`slot-${playerIndex}`);
+            const isRed = (card.suit === 'hearts' || card.suit === 'diamonds');
+            const suitColorClass = isRed ? "text-rose-600" : "text-slate-900";
+            
+            slot.innerHTML = `
+                <div class="card-inner-element relative bg-white border border-slate-300 w-full h-full rounded-lg py-1 px-1 flex flex-col justify-between items-center text-slate-900 card-inner-glow select-none">
+                    <span class="text-[9px] sm:text-[10px] font-extrabold self-start ${suitColorClass}">${card.value}</span>
+                    <span class="text-lg sm:text-xl md:text-2xl ${suitColorClass}">${SUIT_SYMBOL[card.suit]}</span>
+                    <span class="text-[9px] sm:text-[10px] font-extrabold self-end transform rotate-180 ${suitColorClass}">${card.value}</span>
+                </div>
+            `;
+
+            // Shift turn pointer
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
+
+            // Update hand metrics visualizer
+            updateBotHandCounts();
+
+            // Check if all players completed playing card for this hand
+            const allPlayed = gameState.playedCards.every(c => c !== null);
+            if (allPlayed) {
+                gameState.isLocked = true; // Lock immediately to protect user's hand during animation transition
+                setTimeout(() => {
+                    evaluateTrickWinner();
+                }, slowDelay);
+            } else {
+                triggerPlayerTurn();
+            }
+        }
+
+        // AI Logic: Strategic card selection
+        function executeBotTurn() {
+            const hand = gameState.hands[gameState.currentPlayer];
+            let cardToPlay = null;
+
+            // If bot leads the round
+            if (gameState.leadSuit === null) {
+                // Strategy: Pick strongest non-trump card or strongest trump card
+                const nonTrumps = hand.filter(c => c.suit !== gameState.trumpSuit);
+                if (nonTrumps.length > 0) {
+                    // Lead highest card of a non-trump suit to secure hand win
+                    cardToPlay = getHighestValuedCard(nonTrumps);
+                } else {
+                    // Lead highest trump
+                    cardToPlay = getHighestValuedCard(hand);
+                }
+            } else {
+                // Must follow lead suit if possible
+                const matchingCards = hand.filter(c => c.suit === gameState.leadSuit);
+                
+                if (matchingCards.length > 0) {
+                    // Try to win the hand if teammate has not won yet, otherwise save resources
+                    const currentWinningCard = getHighestPlayedCardInArena();
+                    const isTeammateWinning = checkIsTeammateWinning();
+
+                    if (isTeammateWinning) {
+                        // Partner is winning; play lowest card of the suit to conserve power
+                        cardToPlay = getLowestValuedCard(matchingCards);
+                    } else {
+                        // Opponent is winning; try to beat it
+                        const strongerCards = matchingCards.filter(c => compareValue(c.value, currentWinningCard.value) > 0);
+                        if (strongerCards.length > 0) {
+                            cardToPlay = getLowestValuedCard(strongerCards); // play lowest card that can win
+                        } else {
+                            cardToPlay = getLowestValuedCard(matchingCards); // dump lowest card
+                        }
+                    }
+                } else {
+                    // Cannot follow suit; discard or play trump (sluffing)
+                    const trumpCards = hand.filter(c => c.suit === gameState.trumpSuit);
+                    const isTeammateWinning = checkIsTeammateWinning();
+
+                    if (trumpCards.length > 0 && !isTeammateWinning) {
+                        // Play lowest trump that can win the hand
+                        const currentWinningCard = getHighestPlayedCardInArena();
+                        if (currentWinningCard.suit === gameState.trumpSuit) {
+                            const strongerTrumps = trumpCards.filter(c => compareValue(c.value, currentWinningCard.value) > 0);
+                            if (strongerTrumps.length > 0) {
+                                cardToPlay = getLowestValuedCard(strongerTrumps);
+                            } else {
+                                // Conserve trumps, play any lowest card
+                                cardToPlay = getLowestValuedCard(hand.filter(c => c.suit !== gameState.trumpSuit)) || getLowestValuedCard(hand);
+                            }
+                        } else {
+                            // Opponent won but didn't play trump; play lowest trump card to secure hand
+                            cardToPlay = getLowestValuedCard(trumpCards);
+                        }
+                    } else {
+                        // Play lowest card of any non-trump suit
+                        const nonTrumps = hand.filter(c => c.suit !== gameState.trumpSuit);
+                        if (nonTrumps.length > 0) {
+                            cardToPlay = getLowestValuedCard(nonTrumps);
+                        } else {
+                            cardToPlay = getLowestValuedCard(hand);
+                        }
+                    }
+                }
+            }
+
+            // Splice bot played card from hand
+            const idx = hand.indexOf(cardToPlay);
+            if (idx > -1) {
+                hand.splice(idx, 1);
+            }
+
+            executeCardPlay(gameState.currentPlayer, cardToPlay);
+        }
+
+        // Helper value comparison functions
+        function compareValue(val1, val2) {
+            const order = { '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+            return order[val1] - order[val2];
+        }
+
+        function getHighestValuedCard(cardsArray) {
+            return cardsArray.reduce((prev, current) => {
+                return (compareValue(current.value, prev.value) > 0) ? current : prev;
+            });
+        }
+
+        function getLowestValuedCard(cardsArray) {
+            return cardsArray.reduce((prev, current) => {
+                return (compareValue(current.value, prev.value) < 0) ? current : prev;
+            });
+        }
+
+        // Analyze hand cards currently laid on table center
+        function getHighestPlayedCardInArena() {
+            let topCard = null;
+            for (let i = 0; i < 4; i++) {
+                const c = gameState.playedCards[i];
+                if (!c) continue;
+                if (!topCard) {
+                    topCard = c;
+                    continue;
+                }
+                if (compareCards(c, topCard) > 0) {
+                    topCard = c;
+                }
+            }
+            return topCard;
+        }
+
+        function checkIsTeammateWinning() {
+            let topIndex = -1;
+            let topCard = null;
+            for (let i = 0; i < 4; i++) {
+                const c = gameState.playedCards[i];
+                if (!c) continue;
+                if (!topCard) {
+                    topCard = c;
+                    topIndex = i;
+                    continue;
+                }
+                if (compareCards(c, topCard) > 0) {
+                    topCard = c;
+                    topIndex = i;
+                }
+            }
+            
+            // Teammate indexes are pairs (0 and 2 are teammate Us, 1 and 3 are opponents Them)
+            const currentActor = gameState.currentPlayer;
+            if (currentActor === 0 || currentActor === 2) {
+                return (topIndex === 0 || topIndex === 2);
+            } else {
+                return (topIndex === 1 || topIndex === 3);
+            }
+        }
+
+        // Card precedence comparison calculator
+        function compareCards(a, b) {
+            // Priority 1: Trump cards override non-trumps
+            if (a.suit === gameState.trumpSuit && b.suit !== gameState.trumpSuit) {
+                return 1;
+            }
+            if (b.suit === gameState.trumpSuit && a.suit !== gameState.trumpSuit) {
+                return -1;
+            }
+
+            // Priority 2: When both are trumps
+            if (a.suit === gameState.trumpSuit && b.suit === gameState.trumpSuit) {
+                return compareValue(a.value, b.value);
+            }
+
+            // Priority 3: When lead suit cards match
+            if (a.suit === gameState.leadSuit && b.suit !== gameState.leadSuit) {
+                return 1;
+            }
+            if (b.suit === gameState.leadSuit && a.suit !== gameState.leadSuit) {
+                return -1;
+            }
+
+            // Priority 4: Standard comparison under matching suit
+            if (a.suit === b.suit) {
+                return compareValue(a.value, b.value);
+            }
+
+            // Default fallback
+            return 0;
+        }
+
+        // Find index of winning player card
+        function getWinningTrickPlayerIndex() {
+            let winningIndex = 0;
+            let winningCard = gameState.playedCards[0];
+
+            for (let i = 1; i < 4; i++) {
+                if (compareCards(gameState.playedCards[i], winningCard) > 0) {
+                    winningCard = gameState.playedCards[i];
+                    winningIndex = i;
+                }
+            }
+            return winningIndex;
+        }
+
+        // Animate the cards bunching in the center and flying towards the winner
+        function animateTrickGatherAndFly(winnerIndex, onComplete) {
+            const slots = [0, 1, 2, 3].map(p => {
+                const el = document.getElementById(`slot-${p}`);
+                return el ? el.firstElementChild : null;
+            });
+            
+            // Step 1: Gather slightly towards center
+            const gatherOffsets = {
+                0: "translateY(-16px)", // South moves up
+                1: "translateX(-16px)", // East moves left
+                2: "translateY(16px)",  // North moves down
+                3: "translateX(16px)"   // West moves right
+            };
+
+            slots.forEach((card, p) => {
+                if (card) {
+                    card.style.transform = gatherOffsets[p];
+                }
+            });
+
+            // Step 2: Fly to winner
+            setTimeout(() => {
+                let flyTransform = "";
+                switch (winnerIndex) {
+                    case 0: // South (You)
+                        flyTransform = "translateY(220px) scale(0.2)";
+                        break;
+                    case 1: // East
+                        flyTransform = "translateX(220px) scale(0.2)";
+                        break;
+                    case 2: // North (Partner)
+                        flyTransform = "translateY(-220px) scale(0.2)";
+                        break;
+                    case 3: // West
+                        flyTransform = "translateX(-220px) scale(0.2)";
+                        break;
+                }
+
+                slots.forEach(card => {
+                    if (card) {
+                        card.style.transform = flyTransform;
+                        card.style.opacity = "0";
+                    }
+                });
+
+                // Clear visual cards on table once fly animation completes
+                setTimeout(() => {
+                    onComplete();
+                }, 600);
+            }, 400);
+        }
+
+        // Process round updates & scoring metrics
+        function evaluateTrickWinner() {
+            let winningPlayer = getWinningTrickPlayerIndex();
+            
+            // Increment hand won count based on team
+            const isUs = (winningPlayer === 0 || winningPlayer === 2);
+            if (isUs) {
+                gameState.tricksUs++;
+                playSound('trick_win');
+            } else {
+                gameState.tricksThem++;
+                playSound('trick_lose'); // Play lost-hand sound
+            }
+
+            const winPlayerName = getPlayerName(winningPlayer);
+            
+            // Show winning hand in green for Us, or Red for Opponents
+            if (isUs) {
+                addLog(`<span class="text-emerald-400 font-extrabold">★ ${winPlayerName} wins the hand!</span>`);
+            } else {
+                addLog(`<span class="text-rose-500 font-extrabold">★ ${winPlayerName} wins the hand!</span>`);
+            }
+
+            updateRoundTricksCounter();
+
+            // Establish early conclusion flags
+            const isEarlyConclusion = (gameState.hands[0].length > 0) && (
+                (gameState.tricksUs >= 5 && gameState.tricksThem >= 1) ||
+                (gameState.tricksThem >= 5 && gameState.tricksUs >= 1)
+            );
+
+            const handOver = gameState.hands[0].length === 0 || isEarlyConclusion;
+
+            // Last hand displays on table longer (2.5s) so players can view final hand
+            const delayTime = handOver ? 2500 : 1000;
+
+            // Animate flying cards to the winner after the chosen delay
+            setTimeout(() => {
+                animateTrickGatherAndFly(winningPlayer, () => {
+                    resetTrickVisuals();
+                    gameState.playedCards = [null, null, null, null];
+                    gameState.leadSuit = null;
+
+                    if (handOver) {
+                        if (isEarlyConclusion) {
+                            addLog(`<span class="text-amber-400 font-extrabold">Early Round Conclusion! No chance for Kapothi.</span>`);
+                        }
+                        processRoundScoring();
+                    } else {
+                        // Winner leads next hand
+                        gameState.currentPlayer = winningPlayer;
+                        triggerPlayerTurn();
+                    }
+                });
+            }, delayTime);
+        }
+
+        function resetTrickVisuals() {
+            for (let p = 0; p < 4; p++) {
+                const slot = document.getElementById(`slot-${p}`);
+                if (slot) slot.innerHTML = '';
+            }
+        }
+
+        function updateRoundTricksCounter() {
+            // Update dedicated bottom HUD counters
+            const handsWon = document.getElementById('hands-won-counter');
+            const handsLost = document.getElementById('hands-lost-counter');
+            if (handsWon) handsWon.innerText = gameState.tricksUs;
+            if (handsLost) handsLost.innerText = gameState.tricksThem;
+        }
+
+        // Process round updates, carryovers, and scoring metrics
+        function processRoundScoring() {
+            gameState.phase = 'round_finished';
+
+            let tokensUsWon = 0;
+            let tokensThemWon = 0;
+            let isKapothi = false;
+            
+            const declarerTeam = (gameState.trumpSelector === 0 || gameState.trumpSelector === 2) ? "us" : "them";
+            
+            // Standard Sri Lankan Omi scoring logic with double-tie cancellation
+            if (gameState.tricksUs === 8) {
+                tokensUsWon = 3;
+                isKapothi = true;
+                gameState.consecutiveTies = 0; // Reset tie streak
+            } else if (gameState.tricksThem === 8) {
+                tokensThemWon = 3;
+                isKapothi = true;
+                gameState.consecutiveTies = 0; // Reset tie streak
+            } else if (gameState.tricksUs >= 5) {
+                if (declarerTeam === "us") {
+                    tokensUsWon = 1;
+                } else {
+                    tokensUsWon = 2; // Penalty: Chosen team failed to make hands
+                }
+                gameState.consecutiveTies = 0; // Reset tie streak
+            } else if (gameState.tricksThem >= 5) {
+                if (declarerTeam === "them") {
+                    tokensThemWon = 1;
+                } else {
+                    tokensThemWon = 2;
+                }
+                gameState.consecutiveTies = 0; // Reset tie streak
+            } else {
+                // Tie (4-4)
+                gameState.consecutiveTies += 1;
+                
+                if (gameState.consecutiveTies === 1) {
+                    gameState.carryOverTokens = 1;
+                    addLog(`<b class="text-yellow-400">TIE (4-4)! 1st Tie: Carry-over active. Winner of next round gets +1 token (2 tokens total)!</b>`);
+                } else if (gameState.consecutiveTies >= 2) {
+                    // If there are two ties in a row, the tie status is cancelled and normal token rules apply
+                    gameState.carryOverTokens = 0;
+                    gameState.consecutiveTies = 0; // Reset tie streak
+                    addLog(`<b class="text-rose-400">SECOND TIE IN A ROW (4-4)! Tie status is cancelled. Normal token rules apply next round.</b>`);
+                }
+            }
+
+            // Apply carry over tokens to winner
+            if (tokensUsWon > 0) {
+                tokensUsWon += gameState.carryOverTokens;
+                gameState.carryOverTokens = 0;
+                gameState.consecutiveTies = 0;
+                gameState.scores[0] = Math.min(10, gameState.scores[0] + tokensUsWon);
+                playSound('round_win'); // Distinct victorious synthesizer cue
+            } else if (tokensThemWon > 0) {
+                tokensThemWon += gameState.carryOverTokens;
+                gameState.carryOverTokens = 0;
+                gameState.consecutiveTies = 0;
+                gameState.scores[1] = Math.min(10, gameState.scores[1] + tokensThemWon);
+                playSound('round_lose'); // Distinct defeated synthesizer cue
+            } else {
+                playSound('round_win'); // Tie now plays the same sound as winning
+            }
+
+            updateTournamentScores();
+
+            addLog("<hr class='border-white/10 my-1'>");
+            if (tokensUsWon > 0) {
+                addLog(`<b class="text-emerald-400">${isKapothi ? 'KAPOTHI! ' : ''}Your team won ${tokensUsWon} token(s) this round!</b>`);
+            } else if (tokensThemWon > 0) {
+                addLog(`<b class="text-rose-400">${isKapothi ? 'KAPOTHI! ' : ''}Opponents won ${tokensThemWon} token(s) this round!</b>`);
+            }
+
+            if (gameState.scores[0] >= 10 || gameState.scores[1] >= 10) {
+                setTimeout(() => {
+                    triggerTournamentOver();
+                }, 1000);
+            } else {
+                document.getElementById('next-round-btn').classList.remove('hidden');
+                updateStatus("Round Over! Review score tallies and click Next Game.");
+            }
+        }
+
+        function updateTournamentScores() {
+            // Update token text displays
+            document.getElementById('score-us-text').innerText = `${gameState.scores[0]} / 10 Tokens`;
+            document.getElementById('score-them-text').innerText = `${gameState.scores[1]} / 10 Tokens`;
+
+            // Draw Red tokens for Us (Omi Tradition)
+            const listUs = document.getElementById('tokens-us');
+            listUs.innerHTML = '';
+            for (let i = 0; i < gameState.scores[0]; i++) {
+                listUs.innerHTML += `<span class="w-5 h-5 rounded-full bg-rose-600 border border-rose-400 shadow flex items-center justify-center text-[10px] text-white font-bold" title="Red Token">R</span>`;
+            }
+
+            // Draw Black tokens for Them
+            const listThem = document.getElementById('tokens-them');
+            listThem.innerHTML = '';
+            for (let i = 0; i < gameState.scores[1]; i++) {
+                listThem.innerHTML += `<span class="w-5 h-5 rounded-full bg-slate-800 border border-slate-600 shadow flex items-center justify-center text-[10px] text-white font-bold" title="Black Token">B</span>`;
+            }
+        }
+
+        function triggerTournamentOver() {
+            gameState.phase = 'tournament_finished';
+            const weWon = gameState.scores[0] >= 10;
+            
+            if (weWon) {
+                updateStatus("CONGRATULATIONS! Your team won the Omi Tournament!");
+                addLog("<h2>🏆 TOURNAMENT CHAMPIONS! Your team won the match with 10+ tokens!</h2>");
+                showToast("🏆 YOU WON THE TOURNAMENT!");
+            } else {
+                updateStatus("Tournament Over. Opponents won the championship.");
+                addLog("<h2>❌ TOURNAMENT OVER! Opponents secured 10+ tokens and took the win.</h2>");
+                showToast("GAME OVER! Opponents won.");
+            }
+
+            // Show Deal Button to reset
+            document.getElementById('deal-btn').innerText = "Restart Tournament";
+            document.getElementById('deal-btn').classList.remove('hidden');
+            document.getElementById('next-round-btn').classList.add('hidden');
+            
+            // Reset tournaments metrics
+            gameState.scores = [0, 0];
+            gameState.dealer = 0;
+            gameState.consecutiveTies = 0;
+            gameState.carryOverTokens = 0;
+        }
+
+        // Shift dealer role and transition round
+        function startNextRound() {
+            document.getElementById('next-round-btn').classList.add('hidden');
+            
+            // Counter-clockwise shift for dealer
+            gameState.dealer = (gameState.dealer + 1) % 4;
+            
+            const nextDealerName = getPlayerName(gameState.dealer);
+            addLog(`Dealer shift. New dealer is <b>${nextDealerName}</b>`);
+
+            gameState.phase = 'welcome';
+            dealInitialHand();
+        }
+
+        // Helper formatting functions
+        function getPlayerName(idx) {
+            const names = ["South (You)", "East", "North (Partner)", "West"];
+            return names[idx];
+        }
+
+        function getSuitSymbolColorText(suit) {
+            if (suit === 'hearts' || suit === 'diamonds') {
+                return `<span class="text-rose-500 font-bold">${SUIT_SYMBOL[suit]} ${suit.toUpperCase()}</span>`;
+            }
+            return `<span class="text-indigo-400 font-bold">${SUIT_SYMBOL[suit]} ${suit.toUpperCase()}</span>`;
+        }
+
+        function updateStatus(text) {
+            document.getElementById('game-status-text').innerText = text;
+        }
+
+        // Modal triggers
+        function showInstructions() {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        }
+
+        function hideInstructions() {
+            document.getElementById('rules-modal').classList.add('hidden');
+        }
+
+        // Initialize display boards
+        window.onload = function() {
+            updateTournamentScores();
+            addLog("Omi Tournament initialized. Tap 'Deal Cards' to start.");
+        };
+    </script>
+</body>
+</html>
