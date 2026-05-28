@@ -954,7 +954,12 @@
                                 cardToPlay = getLowestValuedCard(strongerTrumps);
                             } else {
                                 // Conserve trumps, play any lowest card
-                                cardToPlay = getLowestValuedCard(hand.filter(c => c.suit !== gameState.trumpSuit)) || getLowestValuedCard(hand);
+                                const nonTrumps = hand.filter(c => c.suit !== gameState.trumpSuit);
+                                if (nonTrumps.length > 0) {
+                                    cardToPlay = getLowestValuedCard(nonTrumps);
+                                } else {
+                                    cardToPlay = getLowestValuedCard(hand);
+                                }
                             }
                         } else {
                             // Opponent won but didn't play trump; play lowest trump card to secure hand
@@ -988,12 +993,14 @@
         }
 
         function getHighestValuedCard(cardsArray) {
+            if (!cardsArray || cardsArray.length === 0) return null;
             return cardsArray.reduce((prev, current) => {
                 return (compareValue(current.value, prev.value) > 0) ? current : prev;
             });
         }
 
         function getLowestValuedCard(cardsArray) {
+            if (!cardsArray || cardsArray.length === 0) return null;
             return cardsArray.reduce((prev, current) => {
                 return (compareValue(current.value, prev.value) < 0) ? current : prev;
             });
