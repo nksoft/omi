@@ -1,4 +1,4 @@
-Sri Lankan Omi Card Game
+Sri Lankan Omi Card Game V1
 
 1. Setup & Team Matrix
 Omi is a 4-player hand-taking game where players sitting opposite each other form a team. South (You) and North (Bot) are partnered against West and East.
@@ -18,5 +18,7 @@ There are 8 total hands in a game. First team to win 5 or more hands wins the ro
 	• 5, 6, or 7 hands won by the defending team: +2 tokens.                        
 	• All 8 hands won (Kapothi) by any team: +3 tokens.                        
 	• A tie (4-4): 1st tie rolls over a token to the next round. If two consecutive ties happen, the tie state cancels and resets.
-	
+
+Live version of V1 at https://nksoft.github.io/omi/
+
 Developped fully using gemini ai
