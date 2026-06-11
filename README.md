@@ -19,6 +19,6 @@ There are 8 total hands in a game. First team to win 5 or more hands wins the ro
 	• All 8 hands won (Kapothi) by any team: +3 tokens.                        
 	• A tie (4-4): 1st tie rolls over a token to the next round. If two consecutive ties happen, the tie state cancels and resets.
 
-Live version of V1 at https://nksoft.github.io/omi/
+Live version of V1 at https://nksoft.github.io/omi-v1/
 
 Developped fully using gemini ai
